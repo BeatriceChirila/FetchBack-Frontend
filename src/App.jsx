@@ -10,6 +10,8 @@ import LostPets from "./LostPets";
 import Navbar from './Navbar';
 import LoginPopup from './LoginPopup';
 
+const BASE_URL = import.meta.env.VITE_API_URL || '';
+
 function App() {
   const [pets, setPets] = useState([]);
   const [stats, setStats] = useState({unidentified: 0, contacted: 0});
@@ -34,14 +36,11 @@ function App() {
         setScreen('home');
     }
     refreshData();
-};
+  };
 
-  
 const refreshData = () => {
     const isDashboardFlag = screen === 'dashboard' ? '&dashboard=true' : '';
-    
-    // 2. Attach the flag to the URL
-    const url = `/api/pets?page=${currentPage}&limit=5${isDashboardFlag}`;
+    const url = `${BASE_URL}/api/pets?page=${currentPage}&limit=5${isDashboardFlag}`;
 
     fetch(url, { credentials: 'include' })
       .then(response => response.json())
@@ -66,18 +65,16 @@ const refreshData = () => {
 
     let inactivityTimer;
 
-    const resetTimer =() => {
+    const resetTimer = () => {
       clearTimeout(inactivityTimer);
       inactivityTimer = setTimeout(() => {
         alert('Session expired due to inactivity. Please log in again.');
         handleLogout();
-      }, 10000 * 60); // 10 minutes
+      }, 10000 * 60);
     };
 
     const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
-
     activityEvents.forEach(event => document.addEventListener(event, resetTimer));
-    
     resetTimer();
 
     return () => {
@@ -86,22 +83,20 @@ const refreshData = () => {
     };
   }, [currentUser]);
 
-
-const handleLogout = () => {
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+  const handleLogout = () => {
+    fetch(`${BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
       .then(() => {
         setCurrentUser(null);
         setPets([]);
         setStats({ unidentified: 0, contacted: 0 });
         setTotalPets(0);
-        
         setScreen('home');
       })
       .catch(err => console.error("Logout failed:", err));
   };
 
   const handleAddPet = (newPetData) => {
-    fetch('/api/pets', {
+    fetch(`${BASE_URL}/api/pets`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -120,7 +115,7 @@ const handleLogout = () => {
   };
 
   const handleUpdatePet = (updatedPetData) => {
-    fetch(`/api/pets/${editingId}`, {
+    fetch(`${BASE_URL}/api/pets/${editingId}`, {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -139,7 +134,7 @@ const handleLogout = () => {
   };
 
   const handleRemovePet = (idToRemove) => {
-    fetch(`/api/pets/${idToRemove}`, { 
+    fetch(`${BASE_URL}/api/pets/${idToRemove}`, { 
       method: 'DELETE',
       credentials: 'include' 
     })

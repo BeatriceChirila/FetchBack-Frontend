@@ -25,7 +25,7 @@ function Home({ pets, setScreen, setViewingId, currentUser, setCurrentUser }) {
   };
 
   const handleLogout = () => {
-    fetch('/api/auth/logout', { method: 'POST' })
+    fetch(`${BASE_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' })
       .then(() => {
         setCurrentUser(null);
         setScreen('home');

@@ -44,6 +44,7 @@ const LoginPopup = ({ isOpen, onClose, onLoginSuccess }) => {
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
