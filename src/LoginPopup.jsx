@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './LoginPopup.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 const LoginPopup = ({ isOpen, onClose, onLoginSuccess }) => {
   const [isLoginMode, setIsLoginMode] = useState(true); 
   const [name, setName] = useState('');
@@ -14,7 +16,7 @@ const LoginPopup = ({ isOpen, onClose, onLoginSuccess }) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetch('api/clinics')
+      fetch(`${API_URL}/api/clinics`)
         .then(res => res.json())
         .then(data => setClinics(data))
         .catch(err => console.error("Could not load clinics", err));
@@ -31,7 +33,9 @@ const LoginPopup = ({ isOpen, onClose, onLoginSuccess }) => {
       return;
     }
 
-    const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+    const endpoint = isLoginMode 
+      ? `${API_URL}/api/auth/login` 
+      : `${API_URL}/api/auth/register`;
     
     const payload = isLoginMode 
         ? { email, password } 
@@ -80,7 +84,6 @@ const LoginPopup = ({ isOpen, onClose, onLoginSuccess }) => {
                 <input type="text" required placeholder="Jane Doe" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               
-              {/* NEW ROLE SELECTOR */}
               <div className="form-group">
                 <label>I am a...</label>
                 <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>
@@ -89,7 +92,6 @@ const LoginPopup = ({ isOpen, onClose, onLoginSuccess }) => {
                 </select>
               </div>
 
-              {/* ONLY SHOW CLINIC DROPDOWN IF THEY CHOOSE VET */}
               {role === 'VET' && (
                 <div className="form-group">
                   <label>Select Clinic</label>
