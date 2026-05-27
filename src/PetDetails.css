@@ -1,4 +1,3 @@
-/* --- PET DETAILS SCREEN --- */
 .details-page-wrapper {
   max-width: 900px;
   margin: 0 auto;
@@ -23,7 +22,7 @@
 
 .details-image-container {
   width: 100%;
-  aspect-ratio: 1 / 1; /* Keeps it perfectly square */
+  aspect-ratio: 1 / 1; /* Keeps it square */
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid #eee;
@@ -80,7 +79,6 @@
   margin-right: 8px;
 }
 
-/* The Big Call to Action Button */
 .details-action-center {
   display: flex;
   justify-content: center;
@@ -119,7 +117,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Dims the screen */
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -128,7 +126,7 @@
 
 /* THE BOX ITSELF */
 .location-modal {
-  background-color: #e9e9e9; /* Light grey from your wireframe */
+  background-color: #e9e9e9;
   width: 90%;
   max-width: 500px;
   padding: 40px;
@@ -180,7 +178,7 @@
 }
 
 .btn-directions-popup {
-  background-color: #93bc9b; /* Muted green from screenshot */
+  background-color: #93bc9b;
   color: white;
   border: none;
   padding: 12px 40px;
@@ -200,4 +198,35 @@
   margin-top: 20px;
   font-size: 14px;
   color: #333;
+}
+
+
+
+/* RESPONSIVE PART */
+
+@media (max-width: 768px) {
+    nav, .navbar, header {
+        display: flex !important;
+        flex-direction: column !important;
+        height: auto !important;
+        padding: 16px 10px !important;
+        gap: 16px !important;
+        text-align: center !important;
+    }
+
+    nav div, .navbar div, .nav-links {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 12px 20px !important;
+        width: 100% !important;
+    }
+
+    .user-info, span[style*="color: #5d9981"] {
+        font-size: 14px !important;
+        display: block !important;
+        width: 100% !important;
+        margin-top: 8px !important;
+    }
 }

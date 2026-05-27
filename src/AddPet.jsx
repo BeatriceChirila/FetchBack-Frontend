@@ -3,11 +3,12 @@ import logo from './assets/logo.png';
 import './App.css'; 
 import './AddPet.css';
 
-function AddPet({ setScreen, savePet }) {
+function AddPet({ setScreen, savePet, userClinicId }) {
     
     const [formData, setFormData] = useState({
         species: 'Dog',
         breed: '',
+        gender: 'Unknown',
         coatColour: '', 
         eyeColour: '', 
         traits: '', 
@@ -17,39 +18,58 @@ function AddPet({ setScreen, savePet }) {
         status: 'Unidentified',
         image: null
     });
+
+    const [errorMessage, setErrorMessage] = useState("");
   
     const handleMicrochipChange = (val) => {
       setFormData({ ...formData, microchip: val, status : val === 'no' ? 'Unidentified' : formData.status });
     };
 
     const [imagePreview, setImagePreview] = useState(null);
+
+    
    
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            setImagePreview(URL.createObjectURL(file));
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+                const base64String = reader.result;
+                
+                setImagePreview(base64String); 
+                
+                setFormData((prevData) => ({
+                    ...prevData,
+                    image: base64String
+                }));
+            };
+
+            reader.readAsDataURL(file);
         }
     };
 
     const onSubmit = () => {
 
+        setErrorMessage('');
+
         if (!imagePreview) {
-            alert('Please upload a photo of the pet.');
+            setErrorMessage('Please upload a photo of the pet.');
             return;
         }
 
         if (!formData.coatColour.trim()) {
-            alert('Please enter the coat colour of the pet.');
+            setErrorMessage('Please enter the coat colour of the pet.');
             return;
         }
 
         if(!formData.eyeColour.trim()) {
-            alert('Please enter the eye colour of the pet.');
+            setErrorMessage('Please enter the eye colour of the pet.');
             return;
         }
 
         if (formData.age < 0 || formData.age > 30) {
-            alert("Please enter a valid age between 0 and 30.");
+            setErrorMessage("Please enter a valid age between 0 and 30.");
             return;
         }
 
@@ -61,28 +81,31 @@ function AddPet({ setScreen, savePet }) {
             eyeColour: formData.eyeColour,
             traits: formData.traits,
             age: formData.age,
+            gender: formData.gender,
             health: formData.healthState,
             status: formData.status,
-            microchip: formData.microchip === 'yes' ? 'Found' : 'None found'
+            microchip: formData.microchip === 'yes' ? 'Found' : 'None found',
+            dateAdmitted: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
         });
     };
 
     return (
     <div className="app-container">
-      <nav className="navbar">
-        <div className="brand-section" onClick={() => setScreen('home')}>
-          <img src={logo} alt="FetchBack Logo" className="logo" style = {{ width: '40px', height: '40px', objectFit: 'contain' }} />
-          <span className="brand-text text-black">Fetch</span>
-          <span className="brand-text text-green">Back</span>
-        </div>
-        <div className="nav-links">
-          <span className="nav-item-bold" onClick={() => setScreen('dashboard')}>Vet Dashboard</span>
-        </div>
-      </nav>
 
       <div className="main-content" style={{ maxWidth: '1000px', margin: '0 auto' }}>
         <span className="back-link" onClick={() => setScreen('dashboard')}>&larr; Back to Dashboard</span>
         <h1 className="page-title" style={{ marginBottom: '30px' }}>Register New Animal</h1>
+
+        {errorMessage && (
+          <div className="error-banner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
         <div className="add-pet-grid">
           {/* Left: Image Upload Area */}
@@ -168,6 +191,43 @@ function AddPet({ setScreen, savePet }) {
                   }} 
                 />
                 <span style={{ color: '#888', fontSize: '14px', fontWeight: 'bold' }}>years</span>
+              </div>
+            </div>
+
+            <div className="input-group">
+              <label>Gender:</label>
+              <div className="radio-group">
+                <button 
+                  type="button" 
+                  className={formData.gender === 'Unknown' ? 'active unknown-active' : ''} 
+                  onClick={() => setFormData({...formData, gender: 'Unknown'})}
+                >
+                  Unknown
+                </button>
+                <button 
+                  type="button" 
+                  className={formData.gender === 'Male' ? 'active' : ''} 
+                  onClick={() => setFormData({...formData, gender: 'Male'})}
+                  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="10" cy="14" r="5"></circle>
+                    <line x1="13.54" y1="10.46" x2="21" y2="3"></line>
+                    <polyline points="16 3 21 3 21 8"></polyline>
+                  </svg>
+                </button>
+                <button 
+                  type="button" 
+                  className={formData.gender === 'Female' ? 'active' : ''} 
+                  onClick={() => setFormData({...formData, gender: 'Female'})}
+                  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="9" r="5"></circle>
+                    <line x1="12" y1="14" x2="12" y2="21"></line>
+                    <line x1="9" y1="18" x2="15" y2="18"></line>
+                  </svg>
+                </button>
               </div>
             </div>
 

@@ -4,6 +4,7 @@ import logo from './assets/logo.png';
 function UpdatePet({ setScreen, savePet, petToEdit }) {
   const [formData, setFormData] = useState({
     species: petToEdit?.species || 'Dog',
+    gender: petToEdit?.gender || 'Unknown',
     coatColour: petToEdit?.coatColour || '',
     eyeColour: petToEdit?.eyeColour || '',
     traits: petToEdit?.traits || '',
@@ -14,6 +15,8 @@ function UpdatePet({ setScreen, savePet, petToEdit }) {
     status: petToEdit?.status || 'Unidentified'
   });
 
+  const [errorMessage, setErrorMessage] = useState("");
+
   const handleMicrochipChange = (val) => {
     setFormData({ 
       ...formData, 
@@ -23,8 +26,31 @@ function UpdatePet({ setScreen, savePet, petToEdit }) {
   };
 
   const onSubmit = () => {
+
+    setErrorMessage('');
+
+    if (!formData.image) {
+      setErrorMessage("Please upload a photo of the pet.");
+      return;
+    }
+    if (!formData.coatColour || formData.coatColour.trim() === '') {
+      setErrorMessage("Please enter the coat colour of the pet.");
+      return;
+    }
+    if (!formData.eyeColour || formData.eyeColour.trim() === '') {
+      setErrorMessage("Please enter the eye colour of the pet.");
+      return;
+    }
+    const ageNum = parseInt(formData.age, 10);
+    if (isNaN(ageNum) || ageNum < 0 || ageNum > 30) {
+      setErrorMessage("Please enter a valid age between 0 and 30.");
+      return;
+    }
+
+    // IF VALID, SEND TO BACKEND
     savePet({
       species: formData.species,
+      gender: formData.gender,
       coatColour: formData.coatColour,
       eyeColour: formData.eyeColour,
       traits: formData.traits,
@@ -38,13 +64,6 @@ function UpdatePet({ setScreen, savePet, petToEdit }) {
 
   return (
     <div className="app-container">
-      <nav className="navbar">
-        <div className="brand-section" onClick={() => setScreen('home')}>
-          <img src={logo} alt="FetchBack Logo" className="logo" style = {{ width: '100px', height: '100px', objectFit: 'contain' }} />
-          <span className="brand-text text-black">Fetch</span>
-          <span className="brand-text text-green">Back</span>
-        </div>
-      </nav>
 
       <div className="main-content">
         <span className="back-link" onClick={() => setScreen('dashboard')}>&lt; Back</span>
@@ -65,6 +84,18 @@ function UpdatePet({ setScreen, savePet, petToEdit }) {
 
           <div className="form-container">
             <h3>Appearance:</h3>
+
+              {errorMessage && (
+                <div className="error-banner">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <span>{errorMessage}</span>
+                </div>
+              )}            
+
             <div className="input-group">
               <label>Species:</label>
               <select 
@@ -119,6 +150,27 @@ function UpdatePet({ setScreen, savePet, petToEdit }) {
               </div>
             </div>
 
+            <div className='input-group'>
+              <label>Gender:</label>
+              <div className="radio-group">
+                <button type="button" className={formData.gender === 'Unknown' ? 'active unknown-active' : ''} onClick={() => setFormData({...formData, gender: 'Unknown'})}>Unknown</button>
+                <button type="button" className={formData.gender === 'Male' ? 'active' : ''} onClick={() => setFormData({...formData, gender: 'Male'})}style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="10" cy="14" r="5"></circle>
+                    <line x1="13.54" y1="10.46" x2="21" y2="3"></line>
+                    <polyline points="16 3 21 3 21 8"></polyline>
+                  </svg></button>
+                <button type="button" className={formData.gender === 'Female' ? 'active' : ''} onClick={() => setFormData({...formData, gender: 'Female'})}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="9" r="5"></circle>
+                    <line x1="12" y1="14" x2="12" y2="21"></line>
+                    <line x1="9" y1="18" x2="15" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
             <h3 style={{ marginTop: '30px' }}>Health:</h3>
             <div className="input-group">
               <label>Microchip:</label>
@@ -144,7 +196,6 @@ function UpdatePet({ setScreen, savePet, petToEdit }) {
             </div>
 
             <div className="form-actions">
-              {/* Changed handleSavePet to onSubmit */}
               <button className="btn-upload" onClick={onSubmit}>Save Changes</button>
               <button className="btn-cancel" onClick={() => setScreen('dashboard')}>Cancel</button>
             </div>

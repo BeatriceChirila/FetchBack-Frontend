@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import logo from './assets/logo.png';
 import './PetDetails.css';
 
-function PetDetails({ pets, viewingId, setScreen }) {
+function PetDetails({ pets, viewingId, setScreen, returnScreen }) {
     const [showModal, setShowModal] = useState(false);
     
     const pet = pets.find(p => p.id === viewingId);
@@ -23,21 +23,10 @@ function PetDetails({ pets, viewingId, setScreen }) {
 
     return (
         <div className="app-container">
-            <nav className="navbar">
-                <div className="brand-section" onClick={() => setScreen('home')}>
-                    <img src={logo} alt="FetchBack Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
-                    <span className="brand-text text-black">Fetch</span>
-                    <span className="brand-text text-green">Back</span>
-                </div>
-                <div className="nav-links">
-                    <span className="nav-item" onClick={() => setScreen('home')}>Lost Pets</span>
-                    <span className="nav-item-bold" onClick={() => setScreen('dashboard')}>Vet Login</span>
-                </div>
-            </nav>
 
             <div className="main-content details-page-wrapper">
-                <span className="back-link" onClick={() => setScreen('home')}>
-                    ← Back to all lost pets
+                <span className="back-link" style={{ cursor: 'pointer' }} onClick={() => setScreen(returnScreen)}>
+                    ← Go Back
                 </span>
 
                 <div className="details-card">
@@ -60,6 +49,7 @@ function PetDetails({ pets, viewingId, setScreen }) {
                                     <li><strong>Eye colour:</strong> {pet.eyeColour}</li>
                                     <li><strong>Distinctive traits:</strong> {pet.traits}</li>
                                     <li><strong>Age:</strong> {pet.age}</li>
+                                    <li><strong>Gender:</strong> {pet.gender}</li>
                                 </ul>
                             </div>
 
@@ -85,18 +75,33 @@ function PetDetails({ pets, viewingId, setScreen }) {
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="location-modal" onClick={(e) => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setShowModal(false)}>X</button>
-                        <h2 className="modal-title">Pet's location</h2>
+                        
+                        <h2 className="modal-title">
+                            {pet.clinic?.name ? `${pet.clinic.name} Location` : "Pet's location"}
+                        </h2>
                         
                         <div className="modal-map-container">
-                            <div className="map-placeholder">
-                                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#5d9981" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                <p>Interactive Map Loading...</p>
-                            </div>
+                            {pet.clinic?.address ? (
+                                <iframe
+                                    title="Clinic Location"
+                                    width="100%"
+                                    height="100%"
+                                    style={{ border: 0, borderRadius: '8px' }}
+                                    loading="lazy"
+                                    allowFullScreen
+                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(pet.clinic.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                ></iframe>
+                            ) : (
+                                <div className="map-placeholder">
+                                    <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#5d9981" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                    <p>No map available</p>
+                                </div>
+                            )}
                         </div>
 
                         <div className="modal-info">
-                            <p><strong>Address:</strong> {pet.clinic?.address || "Street street 1"}</p>
-                            <p><strong>Emergency number:</strong> {pet.clinic?.phone || "0712345678"}</p>
+                            <p><strong>Address:</strong> {pet.clinic?.address || "Address not provided"}</p>
+                            <p><strong>Phone number:</strong> {pet.clinic?.phone || "Phone number not provided"}</p>
                         </div>
 
                         <button 

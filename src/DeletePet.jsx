@@ -11,12 +11,6 @@ function DeletePet({ pets, editingId, setScreen, handleRemove }) {
 
   return (
     <div className="app-container">
-      <nav className="navbar">
-        <div className="brand-section" onClick={() => setScreen('home')}>
-          <img src={logo} alt="FetchBack Logo" className="logo" style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
-          <span className="brand-text text-black">Fetch</span><span className="brand-text text-green">Back</span>
-        </div>
-      </nav>
 
       <div className="main-content delete-page-wrapper">
         <div className="delete-card">

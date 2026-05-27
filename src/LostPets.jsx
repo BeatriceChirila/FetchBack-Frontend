@@ -1,54 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import logo from './assets/logo.png';
+import SightingPopup from './SightingPopup';
 import './LostPets.css';
 
-function LostPets({ pets, setScreen, setViewingId }) {
+function LostPets({ pets, setScreen, setViewingId, currentPage, setCurrentPage, totalPages }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterSpecies, setFilterSpecies] = useState("");
+  const [filterColor, setFilterColor] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const uniqueSpecies = [...new Set(pets.map(p => p.species).filter(Boolean))];
+  const uniqueColors = [...new Set(pets.map(p => p.coatColour).filter(Boolean))];
 
   const filteredPets = pets.filter(pet => {
     const search = searchTerm.toLowerCase();
-    const speciesMatch = (pet.species || "").toLowerCase().includes(search);
-    const breedMatch = (pet.breed || "").toLowerCase().includes(search);
-    const colorMatch = (pet.coatColour || "").toLowerCase().includes(search);
+    const matchesSearch = 
+      (pet.species || "").toLowerCase().includes(search) ||
+      (pet.breed || "").toLowerCase().includes(search) ||
+      (pet.coatColour || "").toLowerCase().includes(search);
     
-    return speciesMatch || breedMatch || colorMatch;
+    const matchesSpecies = filterSpecies === "" || pet.species === filterSpecies;
+    const matchesColor = filterColor === "" || pet.coatColour === filterColor;
+    
+    return matchesSearch && matchesSpecies && matchesColor;
   });
+
+  const handleSightingSubmit = (sightingData) => {
+    console.log("New sighting from Catalog:", sightingData);
+    alert("Thank you for reporting the sighting! The information has been sent to nearby vet clinics.");
+  };
 
   return (
     <div className="app-container">
-      <nav className="navbar">
-        <div className="brand-section" onClick={() => setScreen('home')}>
-          <img src={logo} alt="Logo" style={{ width: '40px', height: '40px' }} />
-          <span className="brand-text text-black">Fetch</span><span className="brand-text text-green">Back</span>
-        </div>
-        <div className="nav-links">
-          <span className="nav-item-bold">Lost Pets</span>
-          <span className="nav-item" onClick={() => setScreen('home')}>Login</span>
-          <span className="nav-item" onClick={() => setScreen('dashboard')}>Vet Login</span>
-        </div>
-      </nav>
 
       <div className="main-content">
         <div className="catalog-header">
           <h1 className="page-title">All Lost Pets</h1>
-          <div className="search-container">
+          
+          {/* --- FILTER CONTROLS --- */}
+          <div className="search-container" style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
             <input 
               type="text" 
-              placeholder="Search by breed, color, or species..." 
+              placeholder="Search by breed, color..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
+              style={{ flex: '1', minWidth: '200px' }}
             />
+            
+            <select 
+              value={filterSpecies} 
+              onChange={(e) => setFilterSpecies(e.target.value)}
+              className="search-input"
+              style={{ width: 'auto', cursor: 'pointer' }}
+            >
+              <option value="">All Species</option>
+              {uniqueSpecies.map(species => (
+                <option key={species} value={species}>{species}</option>
+              ))}
+            </select>
+
+            <select 
+              value={filterColor} 
+              onChange={(e) => setFilterColor(e.target.value)}
+              className="search-input"
+              style={{ width: 'auto', cursor: 'pointer' }}
+            >
+              <option value="">All Colors</option>
+              {uniqueColors.map(color => (
+                <option key={color} value={color}>{color}</option>
+              ))}
+            </select>
           </div>
         </div>
 
         <div className="report-banner">
           <p>Spotted a lost pet? Help them get back home. Every minute counts.</p>
-          <button className="btn-pink-small">Report a sighting now</button>
+          <button className="btn-pink-small" onClick={() => setIsModalOpen(true)}>
+            Report a sighting now
+          </button>
         </div>
 
         <div className="pet-list-container">
           {filteredPets.length > 0 ? (
+            // 2. WE USE filteredPets DIRECTLY NOW, BECAUSE THE SERVER ALREADY SLICED IT
             filteredPets.map(pet => {
               const safeLocation = pet.clinic?.address 
                 ? pet.clinic.address.split(',').pop() 
@@ -80,14 +115,38 @@ function LostPets({ pets, setScreen, setViewingId }) {
               );
             })
           ) : (
-            <p style={{ textAlign: 'center', marginTop: '50px', color: '#888' }}>No pets match your search.</p>
+            <p style={{ textAlign: 'center', marginTop: '50px', color: '#888' }}>No pets match your search criteria.</p>
           )}
         </div>
 
-        <div className="pagination">
-          <span>&lt; Previous | <strong>1</strong> | 2 | 3 | Next &gt;</span>
+        <div className="pagination-bar" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px', paddingBottom: '40px' }}>
+          <button 
+            disabled={currentPage === 1} 
+            onClick={() => setCurrentPage(currentPage - 1)}
+            className="btn-pagination"
+          >
+            Previous
+          </button>
+          
+          <span style={{ alignSelf: 'center' }}>Page {currentPage} of {totalPages || 1}</span>
+
+          <button 
+            disabled={currentPage >= totalPages} 
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className="btn-pagination"
+          >
+            Next
+          </button>
         </div>
+
       </div>
+
+      <SightingPopup
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmitSighting={handleSightingSubmit}
+      />
+
     </div>
   );
 }

@@ -7,23 +7,101 @@
 }
 
 /* Hero Section */
+/* --- HERO SECTION: SPLIT LAYOUT --- */
 .hero-section {
-  margin-bottom: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+  max-width: 1200px;
+  margin: 40px auto 80px auto;
+  padding: 0 20px;
+}
+
+
+.hero-text-content {
+  flex: 1;
+  text-align: left;
+  max-width: 550px;
 }
 
 .hero-title {
-  font-size: 54px;
-  font-weight: 500;
+  font-size: 3.5rem;
   margin-bottom: 20px;
+  color: #1f2937;
+  line-height: 1.2;
 }
 
 .hero-tagline {
-  font-size: 16px;
-  color: #444;
-  max-width: 600px;
-  margin: 0 auto 40px auto;
-  line-height: 1.5;
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin-bottom: 30px;
+  line-height: 1.6;
 }
+
+.hero-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-start; /* Align buttons to the left */
+}
+
+/* Right Side: Image */
+.hero-image-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-image {
+  width: 100%;
+  max-width: 500px;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  z-index: 2;
+  object-fit: cover;
+  aspect-ratio: 4/3;
+}
+
+.hero-blob {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: #10b981;
+  border-radius: 30px;
+  opacity: 0.1;
+  top: 20px;
+  left: 20px;
+  z-index: 1;
+  transform: rotate(-3deg);
+}
+
+/*responsive so it stacks on mobile phones */
+@media (max-width: 900px) {
+  .hero-section {
+    flex-direction: column;
+    text-align: center;
+    margin-top: 20px;
+  }
+  .hero-text-content {
+    text-align: center;
+  }
+  .hero-buttons {
+    justify-content: center;
+  }
+  .hero-image-container {
+    margin-top: 30px;
+  }
+}
+
+/* Update the hero section to have a subtle background anchor */
+.hero-section {
+  position: relative;
+  overflow: visible;
+}
+
+
 
 .hero-buttons {
   display: flex;
@@ -191,4 +269,124 @@
 .view-all-link:hover {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   transform: translateY(-3px);
+}
+
+.text-green {
+  display: inline-block;
+  color: #5d9981;
+  font-weight: 700;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: default;
+  position: relative;
+}
+
+.hero-title:hover .text-green {
+  transform: scale(1.35) rotate(-2deg);
+  
+  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.2));
+  
+  letter-spacing: 2px;
+}
+
+.text-green {
+  animation: subtlePulse 8s infinite ease-in-out;
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+
+
+/* RESPONSIVE PART */
+
+@media (max-width: 768px) {
+    .hero-section {
+        flex-direction: column-reverse; 
+        gap: 30px;
+        padding: 20px 15px;
+        text-align: center;
+    }
+
+    .hero-text-content {
+        max-width: 100%;
+    }
+
+    .hero-title {
+        font-size: 2.2rem;
+        line-height: 1.2;
+    }
+
+    .hero-tagline {
+        font-size: 1rem;
+        margin-bottom: 24px;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .hero-buttons button {
+        width: 100%;
+        padding: 14px;
+    }
+
+    .hero-image-container {
+        width: 100%;
+        max-width: 400px; 
+        margin: 0 auto;
+    }
+
+
+    .features-section {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        gap: 24px !important;
+        padding: 40px 20px !important;
+    }
+
+    .feature-card {
+        display: block !important;
+        width: 100% !important;
+        max-width: 320px !important;
+        margin: 0 auto !important;
+        padding: 24px !important;
+        box-sizing: border-box !important;
+        text-align: center !important;
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        transform: none !important;
+    }
+
+    .recent-pets-section {
+        padding: 40px 15px;
+        text-align: center;
+    }
+
+    .recent-grid {
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 12px;
+    }
+
+    .recent-card {
+        height: 150px; 
+    }
+}
+
+@media (max-width: 480px) {
+    .recent-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .recent-card {
+        height: 200px;
+    }
 }

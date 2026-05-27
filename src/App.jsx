@@ -1,5 +1,4 @@
-import { useState, useEffect, use } from 'react';
-/*import { initialPets } from './data/pets.js';*/
+import { useState, useEffect } from 'react';
 import Home from './Home';
 import VetDashboard from './VetDashboard';
 import AddPet from './AddPet';
@@ -8,188 +7,208 @@ import DeletePet from './DeletePet';
 import PetDetails from './PetDetails.jsx';
 import './App.css';
 import LostPets from "./LostPets";
-
+import Navbar from './Navbar';
+import LoginPopup from './LoginPopup';
 
 function App() {
-  /*const [pets, setPets] = useState(initialPets);*/
-
   const [pets, setPets] = useState([]);
   const [stats, setStats] = useState({unidentified: 0, contacted: 0});
   const [screen, setScreen] = useState('home'); 
   const [editingId, setEditingId] = useState(null);
   const [viewingId, setViewingId] = useState(null);
-
+  const [currentUser, setCurrentUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const[totalPets, setTotalPets] = useState(0);
+  const [totalPets, setTotalPets] = useState(0);
   const limit = 5;
   const totalPages = Math.ceil(totalPets / limit);
-  // --- SIMPLE DELIVERY FUNCTIONS ---
 
-  const refreshData = () => {
-    fetch(`http://localhost:3000/api/pets?page=${currentPage}&limit=5`)
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  
+  const handleLoginSuccess = (userData) => {
+    setCurrentUser({ email: userData.email, name:userData.name, role: userData.role, clinicName: userData.clinicName });
+    setIsLoginOpen(false);
+    
+    if(userData.role === 'VET') {
+        setScreen('dashboard');
+    } else {
+        setScreen('home');
+    }
+    refreshData();
+};
+
+  
+const refreshData = () => {
+    const isDashboardFlag = screen === 'dashboard' ? '&dashboard=true' : '';
+    
+    // 2. Attach the flag to the URL
+    const url = `/api/pets?page=${currentPage}&limit=5${isDashboardFlag}`;
+
+    fetch(url, { credentials: 'include' })
       .then(response => response.json())
-      .then(result => 
-        {
-          console.log('Fetched pets:', result); // Log the fetched data to verify it's correct
-          setPets(result.data || []); 
-          setTotalPets(result.total || 0); 
-          setStats({unidentified: result.unidentified || 0, contacted: result.contacted || 0});
-        })
+      .then(result => {
+        setPets(result.data || []); 
+        setTotalPets(result.total || 0); 
+        setStats({
+            unidentified: result.unidentified || 0, 
+            contacted: result.contacted || 0
+        });
+      })
       .catch(error => console.error('Error fetching pets:', error));
   };
 
   useEffect(() => {
     refreshData();
-  }, [currentPage]);
+  }, [currentPage, screen, currentUser]);
 
-  const handleAddPet = (newPetData) => {
-    const newPet = {
-        ...newPetData,
-        id: Date.now(),
-        dateAdmitted: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), // Changed } to ,
-        
-        clinic: {
-          name: "Vet & Vet Cluj",
-          address: "Strada Republicii 12, Cluj-Napoca",
-          phone: "0712 345 678",
-          mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d87426.04414603683!2d23.528352631557002!3d46.76935702677943!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47490c1f916c0b8b%3A0xbbc681a73c11c9a0!2sCluj-Napoca!5e0!3m2!1sen!2sro!4v1700000000000!5m2!1sen!2s" // Added closing quote "
-      }
+  useEffect(() => {
+    if(!currentUser) 
+      return;
+
+    let inactivityTimer;
+
+    const resetTimer =() => {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        alert('Session expired due to inactivity. Please log in again.');
+        handleLogout();
+      }, 10000 * 60); // 10 minutes
     };
 
+    const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
 
-    fetch('http://localhost:3000/api/pets', {
+    activityEvents.forEach(event => document.addEventListener(event, resetTimer));
+    
+    resetTimer();
+
+    return () => {
+      clearTimeout(inactivityTimer);
+      activityEvents.forEach(event => document.removeEventListener(event, resetTimer));
+    };
+  }, [currentUser]);
+
+
+const handleLogout = () => {
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+      .then(() => {
+        setCurrentUser(null);
+        setPets([]);
+        setStats({ unidentified: 0, contacted: 0 });
+        setTotalPets(0);
+        
+        setScreen('home');
+      })
+      .catch(err => console.error("Logout failed:", err));
+  };
+
+  const handleAddPet = (newPetData) => {
+    fetch('/api/pets', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(newPet)
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newPetData)
     })
     .then(async (response) => {
       const data = await response.json();
-      if (!response.ok) {
-        alert(`Error: ${data.error || 'Unknown error'}`); 
-        throw new Error(data.error || 'Failed to add pet');
-  }
+      if (!response.ok) throw new Error(data.error || 'Failed to add pet');
       return data;
     })
-    .then(savedPet => {
+    .then(() => {
       refreshData();
       setScreen('dashboard');
-      setCurrentPage(1);
     })
-    .catch(error => console.error('Error adding pet:', error));
-
-    /*setPets([newPet, ...pets]);
-    setScreen('dashboard');*/
-};
+    .catch(error => alert(error.message));
+  };
 
   const handleUpdatePet = (updatedPetData) => {
-    
-    fetch(`http://localhost:3000/api/pets/${editingId}`, {
+    fetch(`/api/pets/${editingId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedPetData)
     })
-
     .then(async (response) => {
-      const data = await response.json();
-      if(!response.ok) {
-        alert(`Error updating pet: ${data.error || 'Unknown error'}`);
-        throw new Error('Failed to update pet');
-      }
-      return data;
+      if(!response.ok) throw new Error('Failed to update pet');
+      return response.json();
     })
-    .then(updatedPet => {
+    .then(() => {
       refreshData();
       setScreen('dashboard');
       setEditingId(null);
     })
     .catch(error => console.error('Error updating pet:', error));
-
-
-    /*setPets(pets.map(p => p.id === editingId ? { ...p, ...updatedPetData } : p));
-    setScreen('dashboard');
-    setEditingId(null);*/
   };
 
   const handleRemovePet = (idToRemove) => {
-
-    fetch(`http://localhost:3000/api/pets/${idToRemove}`, {
-      method: 'DELETE'
+    fetch(`/api/pets/${idToRemove}`, { 
+      method: 'DELETE',
+      credentials: 'include' 
     })
     .then(async (response) => {
-      const data = await response.json();
-      if (!response.ok) {
-        alert(`Error deleting pet: ${data.error || 'Failed to delete pet'}`);
-        throw new Error('Failed to delete pet');
-      }
+      if (!response.ok) throw new Error('Failed to delete pet');
       refreshData();
       setScreen('dashboard');
       setEditingId(null);
     })
     .catch(error => console.error('Error deleting pet:', error));
-
-    /*setPets(pets.filter((pet) => pet.id !== idToRemove));
-    setScreen('dashboard');
-    setEditingId(null);*/
   };
 
   return (
     <div className="app-container">
+      <Navbar 
+            screen={screen} 
+            setScreen={setScreen} 
+            currentUser={currentUser} 
+            handleLogout={handleLogout} 
+            setIsLoginOpen={setIsLoginOpen} 
+        />
       {screen === 'home' && (
         <Home 
           setScreen={setScreen} 
           pets={pets}
-          setViewingId={setViewingId} />
-      )}
-
-      {screen === 'pet-details' && (
-        <PetDetails 
-          pets={pets}
-          viewingId={viewingId}
-          setScreen={setScreen}
+          setViewingId={setViewingId} 
+          currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
+          onLoginSuccess={handleLoginSuccess}
         />
       )}
-
+      {screen === 'pet-details' && (
+        <PetDetails pets={pets} viewingId={viewingId} setScreen={setScreen} returnScreen="lost-pets" />
+      )}
+      {screen === 'vet-pet-details' && (
+        <PetDetails pets={pets} viewingId={viewingId} setScreen={setScreen} returnScreen="dashboard" />
+      )}
       {screen === 'lost-pets' && (
         <LostPets 
-          pets={pets}
-          setScreen={setScreen}
-          setViewingId={setViewingId}
+          pets={pets} setScreen={setScreen} setViewingId={setViewingId} 
+          currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages}
         />
       )}
-
       {screen === 'dashboard' && (
         <VetDashboard 
-          pets={pets} 
-          setScreen={setScreen} 
-          setEditingId={setEditingId}
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          totalPages={totalPages || 1}
-          totalPets={totalPets}
-          stats = {stats}
+          pets={pets} setScreen={setScreen} setEditingId={setEditingId}
+          currentPage={currentPage} setCurrentPage={setCurrentPage}
+          totalPages={totalPages || 1} totalPets={totalPets} stats={stats}
+          setViewingId={setViewingId} returnScreen="dashboard"
         />
       )}
-
       {screen === 'add-pet' && (
         <AddPet setScreen={setScreen} savePet={handleAddPet} />
       )}
-
       {screen === 'update-pet' && (
         <UpdatePet 
           setScreen={setScreen} 
           savePet={handleUpdatePet} 
-          // Pass down the specific pet we want to edit!
           petToEdit={pets.find(p => p.id === editingId)} 
         />
       )}
-
       {screen === 'delete-pet' && (
         <DeletePet pets={pets} editingId={editingId} setScreen={setScreen} handleRemove={handleRemovePet} />
       )}
+      <LoginPopup 
+            isOpen={isLoginOpen} 
+            onClose={() => setIsLoginOpen(false)} 
+            onLoginSuccess={handleLoginSuccess}
+        />
     </div>
   );
 }

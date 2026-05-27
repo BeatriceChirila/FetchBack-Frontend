@@ -1,4 +1,3 @@
-/* --- LOST PETS CATALOG --- */
 .catalog-header {
   display: flex;
   justify-content: space-between;
@@ -21,7 +20,7 @@
 }
 
 .report-banner {
-  background-color: #fce4ec; /* Soft pink */
+  background-color: #fce4ec;
   padding: 20px;
   border-radius: 12px;
   text-align: center;
